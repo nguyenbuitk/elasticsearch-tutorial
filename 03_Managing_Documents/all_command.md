@@ -98,3 +98,90 @@ POST /products/_update/100
   }
 }
 
+## 03_06 Upsert
+### Có một cách khác để update documents, đó là upsert (update or insert follow a condition )
+POST /products/_update/101
+{
+  "script": {
+    "source": "ctx._source.in_stock++"
+  },
+  "upsert": {
+    "name": "Blender",
+    "price": 399,
+    "in_stock": 5
+  }
+}
+
+GET /products/_doc/101
+
+## 03_07 Replacing document
+PUT /products/_doc/100
+{
+  "name": "Toaster",
+  "price": 79,
+  "in_stock": 4
+}
+
+GET /products/_doc/100
+
+## 03_08 Deleting documents
+DELETE /products/_doc/101
+
+## 03_09 Optimistic concurrency control
+POST /products/_update/100?if_primary_term=1&if_seq_no=3
+{
+  "doc": {
+    "in_stock": 123
+  }
+}
+
+## 03_10 Update by query
+POST /products/_update_by_query
+{
+  "script": {
+    "source": "ctx._source.in_stock--"
+  },
+  "query": {
+    "match_all": {}
+  }
+}
+
+## 03_11 Delete by query
+POST /products/_delete_by_query
+{
+  "query": {
+    "match_all": { }
+  }
+}
+
+## 03_12 Batch processing
+### Indexing documents
+POST /_bulk
+{"index": {"_index": "products", "_id": 200}}
+{"name": "Espresso Machine", "price": 199, "in_stock": 5}
+{"create": {"_index": "products","_id":201}}
+{"name": "Milk Frother", "price": 149, "in_stock": 14}
+
+### Updating and deleting documents
+POST /_bulk
+{"update": {"_index": "products", "_id":201}}
+{"doc":{"price":129}}
+{"delete": {"_index": "products","_id": 200}}
+
+### Specifying the index name in the request path
+POST /products/_bulk
+{"update": {"_id":201}}
+{"doc":{"price": 129}}
+{"delete": {"_id":200}}
+
+
+GET /products/_search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+GET /_cat/indices
+
+GET /_cat/shards?v
